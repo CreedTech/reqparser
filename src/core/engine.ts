@@ -1,4 +1,9 @@
-import type { NormalizedRequest, OutputFormat, RequestGenerator, RequestParser } from "./types";
+import type {
+  NormalizedRequest,
+  OutputFormat,
+  RequestGenerator,
+  RequestParser,
+} from "./types";
 import { detectInputType } from "./detect";
 import { fetchParser } from "../parsers/fetch";
 import { curlParser } from "../parsers/curl";
@@ -12,20 +17,37 @@ const generators: RequestGenerator[] = [
   axiosGenerator,
   jsonGenerator,
   fetchGenerator,
-  curlGenerator
+  curlGenerator,
 ];
 
 export async function parseRequest(input: string): Promise<NormalizedRequest> {
   const detected = detectInputType(input);
   const parser = parsers.find((p) => p.name === detected);
-  if (!parser) throw new Error(`Unsupported input type: ${detected}`);
+
+  if (!parser) {
+    throw new Error(`Unsupported input type: ${detected}`);
+  }
 
   return parser.parse(input);
 }
 
-export async function generateRequest(input: string, format: OutputFormat): Promise<string> {
-  const parsed = await parseRequest(input);
+export async function generateFromParsed(
+  parsed: NormalizedRequest,
+  format: OutputFormat
+): Promise<string> {
   const generator = generators.find((g) => g.name === format);
-  if (!generator) throw new Error(`Unsupported output format: ${format}`);
+
+  if (!generator) {
+    throw new Error(`Unsupported output format: ${format}`);
+  }
+
   return generator.generate(parsed);
+}
+
+export async function generateRequest(
+  input: string,
+  format: OutputFormat
+): Promise<string> {
+  const parsed = await parseRequest(input);
+  return generateFromParsed(parsed, format);
 }
