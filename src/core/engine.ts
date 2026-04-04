@@ -5,19 +5,22 @@ import { curlParser } from "../parsers/curl";
 import { axiosGenerator } from "../generators/axios";
 import { jsonGenerator } from "../generators/json";
 import { fetchGenerator } from "../generators/fetch";
-import { redactHeaders } from "../utils/redact";
+import { curlGenerator } from "../generators/curl";
 
 const parsers: RequestParser[] = [fetchParser, curlParser];
-const generators: RequestGenerator[] = [axiosGenerator, jsonGenerator, fetchGenerator];
+const generators: RequestGenerator[] = [
+  axiosGenerator,
+  jsonGenerator,
+  fetchGenerator,
+  curlGenerator
+];
 
 export async function parseRequest(input: string): Promise<NormalizedRequest> {
   const detected = detectInputType(input);
   const parser = parsers.find((p) => p.name === detected);
   if (!parser) throw new Error(`Unsupported input type: ${detected}`);
-  
-  const parsed = await parser.parse(input);
-  parsed.headers = redactHeaders(parsed.headers);
-  return parsed;
+
+  return parser.parse(input);
 }
 
 export async function generateRequest(input: string, format: OutputFormat): Promise<string> {
