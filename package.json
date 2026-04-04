@@ -1,14 +1,28 @@
 {
   "name": "request-transformer-cli",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Transform network requests into reusable code using AST parsing",
+  "type": "commonjs",
+  "main": "dist/core/engine.js",
+  "bin": {
+    "rtcli": "dist/cli/index.js"
   },
-  "keywords": [],
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "cli",
+    "fetch",
+    "curl",
+    "axios",
+    "ast",
+    "typescript"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@babel/parser": "^7.29.2",
     "@babel/traverse": "^7.29.0",
