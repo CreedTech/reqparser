@@ -84,10 +84,10 @@ export const curlParser: RequestParser = {
 
     let body:
       | {
-        raw?: string;
-        json?: unknown;
-        type: "json" | "text" | "form-urlencoded" | "multipart" | "unknown";
-      }
+          raw?: string;
+          json?: unknown;
+          type: "json" | "text" | "form-urlencoded" | "multipart" | "unknown";
+        }
       | undefined;
 
     if (bodyRaw !== undefined) {

@@ -33,7 +33,7 @@ export async function parseRequest(input: string): Promise<NormalizedRequest> {
 
 export async function generateFromParsed(
   parsed: NormalizedRequest,
-  format: OutputFormat
+  format: OutputFormat,
 ): Promise<string> {
   const generator = generators.find((g) => g.name === format);
 
@@ -46,7 +46,7 @@ export async function generateFromParsed(
 
 export async function generateRequest(
   input: string,
-  format: OutputFormat
+  format: OutputFormat,
 ): Promise<string> {
   const parsed = await parseRequest(input);
   return generateFromParsed(parsed, format);

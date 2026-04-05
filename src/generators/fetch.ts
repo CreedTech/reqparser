@@ -4,12 +4,12 @@ export const fetchGenerator: RequestGenerator = {
   name: "fetch",
   async generate(request: NormalizedRequest): Promise<string> {
     const headerEntries = Object.entries(request.headers);
-    const headersStr = headerEntries.length 
-      ? `{\n${headerEntries.map(([k, v]) => `    "${k}": "${v}"`).join(",\n")}\n  }` 
+    const headersStr = headerEntries.length
+      ? `{\n${headerEntries.map(([k, v]) => `    "${k}": "${v}"`).join(",\n")}\n  }`
       : "{}";
 
     const options: string[] = [];
-    
+
     if (request.method !== "GET") {
       options.push(`method: "${request.method}"`);
     }
@@ -20,8 +20,9 @@ export const fetchGenerator: RequestGenerator = {
       options.push(`body: ${JSON.stringify(request.body.raw)}`);
     }
 
-    const optionsStr = options.length > 0 ? `, {\n  ${options.join(",\n  ")}\n}` : "";
+    const optionsStr =
+      options.length > 0 ? `, {\n  ${options.join(",\n  ")}\n}` : "";
 
     return `const response = await fetch("${request.url}"${optionsStr});`;
-  }
+  },
 };

@@ -1,6 +1,9 @@
 import fs from "node:fs";
 
-export async function readInput(options: { file?: string; stdin?: boolean }): Promise<string> {
+export async function readInput(options: {
+  file?: string;
+  stdin?: boolean;
+}): Promise<string> {
   if (options.file) {
     return fs.readFileSync(options.file, "utf8");
   }

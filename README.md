@@ -28,12 +28,12 @@ It is built for developers who want to stop manually rewriting copied requests i
 Examples of supported fetch input:
 
 ```js
-fetch('https://api.example.com/users', {
-  method: 'POST',
+fetch("https://api.example.com/users", {
+  method: "POST",
   headers: {
-    'content-type': 'application/json',
+    "content-type": "application/json",
   },
-  body: JSON.stringify({ id: 1, name: 'Ayodele' }),
+  body: JSON.stringify({ id: 1, name: "Ayodele" }),
 });
 ```
 
@@ -165,12 +165,12 @@ pnpm dev validate --file test.txt
 #### Input
 
 ```js
-fetch('https://api.example.com/users', {
-  method: 'POST',
+fetch("https://api.example.com/users", {
+  method: "POST",
   headers: {
-    'content-type': 'application/json',
+    "content-type": "application/json",
   },
-  body: JSON.stringify({ id: 1, name: 'Ayodele' }),
+  body: JSON.stringify({ id: 1, name: "Ayodele" }),
 });
 ```
 
@@ -178,10 +178,10 @@ fetch('https://api.example.com/users', {
 
 ```ts
 const response = await axios({
-  url: 'https://api.example.com/users',
-  method: 'post',
+  url: "https://api.example.com/users",
+  method: "post",
   headers: {
-    'content-type': 'application/json',
+    "content-type": "application/json",
   },
   data: '{"id":1,"name":"Ayodele"}',
 });

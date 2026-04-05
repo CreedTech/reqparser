@@ -26,7 +26,9 @@ function expressionToJsonValue(node: Expression): unknown {
       return node.elements.map((element) => {
         if (!element) return null;
         if (element.type === "SpreadElement") {
-          throw new Error("Spread elements are not supported in JSON.stringify body parsing");
+          throw new Error(
+            "Spread elements are not supported in JSON.stringify body parsing",
+          );
         }
         return expressionToJsonValue(element);
       });
@@ -35,12 +37,16 @@ function expressionToJsonValue(node: Expression): unknown {
   }
 }
 
-function objectExpressionToJson(node: ObjectExpression): Record<string, unknown> {
+function objectExpressionToJson(
+  node: ObjectExpression,
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 
   for (const prop of node.properties) {
     if (prop.type !== "ObjectProperty") {
-      throw new Error("Only plain object properties are supported in JSON.stringify body parsing");
+      throw new Error(
+        "Only plain object properties are supported in JSON.stringify body parsing",
+      );
     }
 
     let key: string;
@@ -49,11 +55,15 @@ function objectExpressionToJson(node: ObjectExpression): Record<string, unknown>
     } else if (prop.key.type === "StringLiteral") {
       key = prop.key.value;
     } else {
-      throw new Error("Unsupported object key type in JSON.stringify body parsing");
+      throw new Error(
+        "Unsupported object key type in JSON.stringify body parsing",
+      );
     }
 
     if (prop.value.type === "TSAsExpression") {
-      throw new Error("Type assertions are not supported in JSON.stringify body parsing");
+      throw new Error(
+        "Type assertions are not supported in JSON.stringify body parsing",
+      );
     }
 
     result[key] = expressionToJsonValue(prop.value as Expression);
@@ -128,7 +138,9 @@ function extractBody(node: Expression): ExtractedBody {
       };
     } catch (error) {
       warnings.push(
-        error instanceof Error ? error.message : "Unsupported JSON.stringify body expression"
+        error instanceof Error
+          ? error.message
+          : "Unsupported JSON.stringify body expression",
       );
       return {
         type: "unknown",
@@ -166,7 +178,10 @@ export const fetchParser: RequestParser = {
 
     traverse(ast, {
       CallExpression(path) {
-        if (path.node.callee.type !== "Identifier" || path.node.callee.name !== "fetch") {
+        if (
+          path.node.callee.type !== "Identifier" ||
+          path.node.callee.name !== "fetch"
+        ) {
           return;
         }
 
@@ -179,20 +194,30 @@ export const fetchParser: RequestParser = {
 
         if (urlArg.type === "StringLiteral") {
           url = urlArg.value;
-        } else if (urlArg.type === "TemplateLiteral" && urlArg.expressions.length === 0) {
+        } else if (
+          urlArg.type === "TemplateLiteral" &&
+          urlArg.expressions.length === 0
+        ) {
           url = urlArg.quasis.map((q) => q.value.cooked ?? "").join("");
         } else {
-          warnings.push("Only string literal or static template literal URLs are supported in v1");
+          warnings.push(
+            "Only string literal or static template literal URLs are supported in v1",
+          );
         }
 
         if (optionsArg?.type === "ObjectExpression") {
           for (const prop of optionsArg.properties) {
             if (prop.type !== "ObjectProperty") {
-              warnings.push("Spread properties in fetch options are not supported in v1");
+              warnings.push(
+                "Spread properties in fetch options are not supported in v1",
+              );
               continue;
             }
 
-            if (prop.key.type !== "Identifier" && prop.key.type !== "StringLiteral") {
+            if (
+              prop.key.type !== "Identifier" &&
+              prop.key.type !== "StringLiteral"
+            ) {
               warnings.push("Unsupported fetch option key type");
               continue;
             }
@@ -208,19 +233,24 @@ export const fetchParser: RequestParser = {
             if (key === "headers" && prop.value.type === "ObjectExpression") {
               for (const h of prop.value.properties) {
                 if (h.type !== "ObjectProperty") {
-                  warnings.push("Spread properties in headers are not supported in v1");
+                  warnings.push(
+                    "Spread properties in headers are not supported in v1",
+                  );
                   continue;
                 }
 
                 if (
-                  (h.key.type === "Identifier" || h.key.type === "StringLiteral") &&
+                  (h.key.type === "Identifier" ||
+                    h.key.type === "StringLiteral") &&
                   h.value.type === "StringLiteral"
                 ) {
                   const headerKey =
                     h.key.type === "Identifier" ? h.key.name : h.key.value;
                   headers[headerKey.toLowerCase()] = h.value.value;
                 } else {
-                  warnings.push("Only string literal header values are supported in v1");
+                  warnings.push(
+                    "Only string literal header values are supported in v1",
+                  );
                 }
               }
               continue;
