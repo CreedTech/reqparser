@@ -1,5 +1,10 @@
 import { parse } from "shell-quote";
+import type { ParseEntry } from "shell-quote";
 import type { NormalizedRequest, RequestParser } from "../core/types";
+
+function isStringToken(token: ParseEntry): token is string {
+  return typeof token === "string";
+}
 
 export const curlParser: RequestParser = {
   name: "curl",
@@ -9,52 +14,24 @@ export const curlParser: RequestParser = {
   },
 
   async parse(input: string): Promise<NormalizedRequest> {
-    // 1. Tokenize the shell command safely
     const tokens = parse(input);
-    
+
     let url = "";
     let method = "GET";
     const headers: Record<string, string> = {};
     let bodyRaw: string | undefined;
     const warnings: string[] = [];
 
-    let isParsingHeaders = false;
-    let isParsingData = false;
-    let isParsingMethod = false;
+    let expectHeader = false;
+    let expectData = false;
+    let expectMethod = false;
 
-    // 2. Iterate through the tokens to extract data
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      if (typeof token !== "string") continue; // Ignore glob patterns/operators
+    for (const token of tokens) {
+      if (!isStringToken(token)) continue;
 
       if (token === "curl") continue;
 
-      // Check if the current token is a URL
-      if (token.startsWith("http://") || token.startsWith("https://")) {
-        url = token;
-        continue;
-      }
-
-      // Handle Flags
-      if (token === "-H" || token === "--header") {
-        isParsingHeaders = true;
-        continue;
-      }
-
-      if (token === "-X" || token === "--request") {
-        isParsingMethod = true;
-        continue;
-      }
-
-      if (token === "-d" || token === "--data" || token === "--data-raw" || token === "--data-binary") {
-        isParsingData = true;
-        // cURL implies POST if data is provided and no method is explicitly set
-        if (method === "GET") method = "POST"; 
-        continue;
-      }
-
-      // Extract Values based on the active flag
-      if (isParsingHeaders) {
+      if (expectHeader) {
         const separatorIdx = token.indexOf(":");
         if (separatorIdx > -1) {
           const key = token.slice(0, separatorIdx).trim().toLowerCase();
@@ -63,33 +40,68 @@ export const curlParser: RequestParser = {
         } else {
           warnings.push(`Malformed header: ${token}`);
         }
-        isParsingHeaders = false;
+        expectHeader = false;
         continue;
       }
 
-      if (isParsingMethod) {
+      if (expectMethod) {
         method = token.toUpperCase();
-        isParsingMethod = false;
+        expectMethod = false;
         continue;
       }
 
-      if (isParsingData) {
+      if (expectData) {
         bodyRaw = token;
-        isParsingData = false;
+        if (method === "GET") method = "POST";
+        expectData = false;
         continue;
+      }
+
+      if (token === "-H" || token === "--header") {
+        expectHeader = true;
+        continue;
+      }
+
+      if (token === "-X" || token === "--request") {
+        expectMethod = true;
+        continue;
+      }
+
+      if (
+        token === "-d" ||
+        token === "--data" ||
+        token === "--data-raw" ||
+        token === "--data-binary"
+      ) {
+        expectData = true;
+        continue;
+      }
+
+      if (token.startsWith("http://") || token.startsWith("https://")) {
+        url = token;
       }
     }
 
-    // 3. Content-Type Analysis
-    let bodyJson: unknown = undefined;
-    let bodyType: NormalizedRequest["body"]["type"] = "unknown";
+    let body:
+      | {
+        raw?: string;
+        json?: unknown;
+        type: "json" | "text" | "form-urlencoded" | "multipart" | "unknown";
+      }
+      | undefined;
 
-    if (bodyRaw) {
+    if (bodyRaw !== undefined) {
       try {
-        bodyJson = JSON.parse(bodyRaw);
-        bodyType = "json";
+        body = {
+          raw: bodyRaw,
+          json: JSON.parse(bodyRaw),
+          type: "json",
+        };
       } catch {
-        bodyType = "text";
+        body = {
+          raw: bodyRaw,
+          type: "text",
+        };
       }
     }
 
@@ -101,11 +113,11 @@ export const curlParser: RequestParser = {
       url,
       method,
       headers,
-      body: bodyRaw ? { raw: bodyRaw, json: bodyJson, type: bodyType } : undefined,
+      body,
       meta: {
         source: "curl",
-        warnings
-      }
+        warnings,
+      },
     };
-  }
+  },
 };
