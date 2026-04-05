@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { generateRequest, parseRequest } from "../src/core/engine";
+import {
+  generateFromParsed,
+  generateRequest,
+  parseRequest,
+} from "../src/core/engine";
+import { redactRequest } from "../src/utils/redact";
 
 describe("reqparser engine", () => {
   it("transforms a simple fetch to axios", async () => {
@@ -17,13 +22,53 @@ describe("reqparser engine", () => {
     expect(parsed.headers.authorization).toBe("Bearer secret-123");
   });
 
-  it("handles POST requests with string bodies", async () => {
-    const input =
-      'fetch("https://api.com", { method: "POST", body: "{\\"id\\":1}" })';
+  it("emits structured JSON for axios when parsed JSON is available", async () => {
+    const input = `fetch("https://api.com", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: 1, active: true })
+    })`;
+
+    const output = await generateRequest(input, "axios");
+
+    expect(output).toContain("data: {");
+    expect(output).toContain('"id": 1');
+    expect(output).toContain('"active": true');
+    expect(output).not.toContain('data: "{');
+  });
+
+  it("emits JSON.stringify for structured fetch bodies", async () => {
+    const input = `fetch("https://api.com", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: 1, name: "Ayodele" })
+    })`;
+
     const output = await generateRequest(input, "fetch");
 
-    expect(output).toContain('method: "POST"');
-    expect(output).toContain('body: "{\\"id\\":1}"');
+    expect(output).toContain("body: JSON.stringify({");
+    expect(output).toContain('"id": 1');
+    expect(output).toContain('"name": "Ayodele"');
+  });
+
+  it("redacts sensitive headers and common body secrets", async () => {
+    const input = `fetch("https://api.com", {
+      method: "POST",
+      headers: {
+        "authorization": "Bearer secret-123",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ token: "abc", nested: { password: "secret" } })
+    })`;
+
+    const parsed = await parseRequest(input);
+    const redacted = redactRequest(parsed);
+    const output = await generateFromParsed(redacted, "json");
+    const result = JSON.parse(output);
+
+    expect(result.headers.authorization).toBe("REDACTED_BY_REQPARSER");
+    expect(result.body.json.token).toBe("REDACTED_BY_REQPARSER");
+    expect(result.body.json.nested.password).toBe("REDACTED_BY_REQPARSER");
   });
 
   it("generates curl output", async () => {
