@@ -3,7 +3,7 @@ import { readInput, writeOutput } from "./io";
 import { detectInputType } from "../core/detect";
 import { generateFromParsed, parseRequest } from "../core/engine";
 import type { OutputFormat } from "../core/types";
-import { redactHeaders } from "../utils/redact";
+import { redactRequest } from "../utils/redact";
 
 type BaseOptions = {
   file?: string;
@@ -44,18 +44,14 @@ async function main(): Promise<void> {
       default: "json",
     })
     .option("--out <path>", "Write output to file")
-    .option("--redact", "Redact sensitive headers")
+    .option("--redact", "Redact sensitive headers and common body secrets")
     .action(async (options: ParseOptions) => {
       try {
         const input = await readInput(options);
         const parsed = await parseRequest(input);
-
-        if (options.redact) {
-          parsed.headers = redactHeaders(parsed.headers);
-        }
-
+        const prepared = options.redact ? redactRequest(parsed) : parsed;
         const format = (options.to ?? "json") as OutputFormat;
-        const output = await generateFromParsed(parsed, format);
+        const output = await generateFromParsed(prepared, format);
         writeOutput(output, options.out);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
