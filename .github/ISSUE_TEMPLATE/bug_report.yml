@@ -1,0 +1,59 @@
+name: Bug report
+description: Report a reproducible problem in reqparser
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Briefly describe the bug
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run ...
+        2. Use this input ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: input_type
+    attributes:
+      label: Input type
+      options:
+        - fetch
+        - curl
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample input
+      render: shell
+      description: Redact secrets before posting.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Node version, OS, pnpm version, command used

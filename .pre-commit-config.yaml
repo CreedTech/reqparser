@@ -1,0 +1,26 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-json
+      - id: check-yaml
+      - id: mixed-line-ending
+
+  - repo: local
+    hooks:
+      - id: reqparser-build
+        name: reqparser build
+        entry: pnpm build
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: reqparser-test
+        name: reqparser test
+        entry: pnpm test
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
