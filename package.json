@@ -27,7 +27,7 @@
   "author": "",
   "dependencies": {
     "@babel/parser": "^7.29.2",
-    "@babel/traverse": "^7.29.0",
+    "@babel/traverse": "^7.29.7",
     "@babel/types": "^7.29.0",
     "cac": "^7.0.0",
     "shell-quote": "^1.8.3"
