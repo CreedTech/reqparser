@@ -1,6 +1,6 @@
-import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
-import type { File, Expression, ObjectExpression } from "@babel/types";
+import type { Expression, ObjectExpression } from "@babel/types" with {
+  "resolution-mode": "import",
+};
 import type { NormalizedRequest, RequestParser } from "../core/types";
 
 type ExtractedBody = {
@@ -165,7 +165,10 @@ export const fetchParser: RequestParser = {
   },
 
   async parse(input: string): Promise<NormalizedRequest> {
-    const ast: File = parse(input, {
+    const { parse } = await import("@babel/parser");
+    const { default: traverse } = await import("@babel/traverse");
+
+    const ast = parse(input, {
       sourceType: "module",
       plugins: ["typescript"],
     });
